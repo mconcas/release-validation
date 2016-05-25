@@ -82,9 +82,12 @@ set +x
 cp release-validation/datasets/${DATASET}.txt files.list
 
 # Pure (i.e. non-filtered) raws need this parameter
-cat >> benchmark.config <<EOF
+if ! grep -q filtered files.list; then
+  echo "Adding trigger option for non-filtered raws."
+  cat >> benchmark.config <<EOF
 recoTriggerOptions="?Trigger=kCalibBarrel"
 EOF
+fi
 
 if [[ "$LIMIT_FILES" -gt 0 ]]; then
   echo "Limiting validation to $LIMIT_FILES file(s)."
@@ -92,11 +95,14 @@ if [[ "$LIMIT_FILES" -gt 0 ]]; then
   mv files.list.0 files.list
 fi
 
+echo "Using dataset $DATASET, list of files follows."
+cat files.list
+
 echo "Starting the Release Validation."
 chmod +x benchmark.sh
 set +e
-echo NOTE: Not running it for real.
-echo ./benchmark.sh run "$RELVAL_NAME" files.list benchmark.config
+[[ "$DRY_RUN" == true ]] && echo "Dry run: not running the release validation." \
+                         || ./benchmark.sh run "$RELVAL_NAME" files.list benchmark.config
 RV=$?
 
 echo "Release Validation finished with exitcode $RV."
