@@ -82,9 +82,12 @@ set +x
 cp release-validation/datasets/${DATASET}.txt files.list
 
 # Pure (i.e. non-filtered) raws need this parameter
-cat >> benchmark.config <<EOF
+if ! grep -q filtered files.list; then
+  echo "Adding trigger option for non-filtered raws."
+  cat >> benchmark.config <<EOF
 recoTriggerOptions="?Trigger=kCalibBarrel"
 EOF
+fi
 
 if [[ "$LIMIT_FILES" -gt 0 ]]; then
   echo "Limiting validation to $LIMIT_FILES file(s)."
