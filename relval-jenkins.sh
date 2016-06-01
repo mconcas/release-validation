@@ -21,6 +21,7 @@ echo "Release validation name: $RELVAL_NAME"
 
 # Configuration file for the Release Validation.
 cat > benchmark.config <<EOF
+# Note: do not be confused by "2010". It will be substituted with the actual year at runtime.
 defaultOCDB="local:///cvmfs/alice-ocdb.cern.ch/calibration/data/2010/OCDB/"
 batchFlags=""
 reconstructInTemporaryDir=0
@@ -96,6 +97,18 @@ fi
 
 echo "Using dataset $DATASET, list of files follows."
 cat files.list
+
+# Allow for monkey-patching the current validation. It takes a tarball from the given URL and
+# unpacks it in the current directory.
+[[ ! -z "$MONKEYPATCH_TARBALL_URL" ]] && (
+  echo "Getting and applying monkey-patch tarball from $MONKEYPATCH_TARBALL_URL..."
+  source utilities.sh
+  source benchmark.config
+  copyFileFromRemote "$MONKEYPATCH_TARBALL_URL" "$PWD"
+  TAR=`basename "$MONKEYPATCH_TARBALL_URL"`
+  tar xzvvf "$TAR"
+  rm -f "$TAR"
+)
 
 echo "Starting the Release Validation."
 chmod +x benchmark.sh
