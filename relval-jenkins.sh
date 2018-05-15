@@ -149,9 +149,13 @@ function jira_relval_finished() {
        done)"
 }
 
+# Function to preprocess the JDL
+# Usage:
+#   preprocess_jdl $JDL
 function preprocess_jdl() {
   local JDL=$1
   if grep -q 'aliroot_dpgsim.sh' "$JDL"; then
+    echo "Parsing JDL: ${JDL}..."
     # JDL belongs to a Monte Carlo
     OUTPUT_URL="${OUTPUT_URL}/MC"
     [[ $LIMIT_FILES -ge 1 && $LIMIT_EVENTS -ge 1 ]] || { echo "LIMIT_FILES and LIMIT_EVENTS are wrongly set"; exit 1; }
