@@ -279,8 +279,11 @@ node("$RUN_ARCH-relval") {
 
         # Start the Release Validation (notify on JIRA before and after)
         jira_relval_started  "$JIRA_ISSUE" "$OUTPUT_URL" "${TAGS// /, }" false || true
-        jdl2makeflow --force --run $JDL -T wq -N alirelval_${RELVAL_NAME} -r 3 -C wqcatalog.marathon.mesos:9097 || RV=$?
+        set -x
+        jdl2makeflow --parse-only $JDL
+        echo jdl2makeflow --force --run $JDL -T wq -N alirelval_${RELVAL_NAME} -r 3 -C wqcatalog.marathon.mesos:9097 || RV=$?
         jira_relval_finished "$JIRA_ISSUE" $RV "$OUTPUT_URL" "${TAGS// /, }" false || true
+        set +x
         exit $RV
       '''
     }
