@@ -58,7 +58,7 @@ def preprocess_var(s, sh_mode):
 
 def gen_runjob(output_file, jdl, dry_run):
   runjob = j2env.from_string("""#!/bin/bash -e
-type zip unzip zipinfo
+type zip unzip zipinfo timeout
 ulimit -c unlimited  # enable core dumps
 {% for v in [ "LANG", "LANGUAGE", "LC_ALL", "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES", \
               "LC_MONETARY", "LC_NUMERIC", "LC_TIME", "LC_ALL" ] -%}
@@ -113,7 +113,7 @@ for INP in "${INPUT_LIST[@]}"; do
     echo "Transferring $INP to the input box (attempt $I/5)"
     case $PROTO in
       local) cp -v "$INP" . && break || ERR=$? ;;
-      root)  xrdcp -f "$INP" . && break || ERR=$? ;;
+      root)  timeout -k 100 xrdcp -f "$INP" . && break || ERR=$? ;;
     esac
   done
   [[ $ERR == 0 ]] || { echo "Error copying files into the input box"; exit 1; }
@@ -216,7 +216,7 @@ pushd to_transfer
       echo "Transferring $FILE to $ALIEN_JDL_OUTPUTDIR (attempt $I/5)"
       case $PROTO in
         local) mkdir -p $(dirname "$ALIEN_JDL_OUTPUTDIR/$FILE"); cp -v $FILE $ALIEN_JDL_OUTPUTDIR/$FILE && break || ERR=$? ;;
-        root)  xrdcp -f $FILE $ALIEN_JDL_OUTPUTDIR/$FILE && break || ERR=$? ;;
+        root)  timeout -k 100 xrdcp -f $FILE $ALIEN_JDL_OUTPUTDIR/$FILE && break || ERR=$? ;;
       esac
     done
   done < <(find . -type f | sed -e 's|^\./||')
