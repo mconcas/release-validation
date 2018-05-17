@@ -277,10 +277,12 @@ node("$RUN_ARCH-relval") {
           echo "This JDL does not belong to a Monte Carlo. Not supported."
           exit 1
         fi
+
         if [[ $DRYRUN == true ]]; then
           RUN_DRYRUN="--dryrun"
           DONTMENTION=true
         fi
+
         # Start the Release Validation (notify on JIRA before and after)
         jira_relval_started  "$JIRA_ISSUE" "$OUTPUT_URL" "${TAGS// /, }" "$DONTMENTION" || true
         RV=0
