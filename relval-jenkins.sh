@@ -160,15 +160,18 @@ function preprocess_jdl() {
     echo "Parsing JDL: ${JDL}..."
     # JDL belongs to a Monte Carlo
     OUTPUT_URL="${OUTPUT_URL}/MC"
-    [[ $LIMIT_FILES -ge 1 && $LIMIT_EVENTS -ge 1 ]] || { echo "LIMIT_FILES and LIMIT_EVENTS are wrongly set"; exit 1; }
-    echo "NoLiveOutput = 1;" >> $JDL
-    echo "Split_override = \"production:1-${LIMIT_FILES}\";" >> $JDL
-    echo "SplitArguments_replace = { \"--nevents\\\s[0-9]+\", \"--nevents ${LIMIT_EVENTS}\" };" >> $JDL
-    echo "OutputDir_override = \"${OUTPUT_XRD}/${RELVAL_NAME}/MC/#alien_counter_04i#\";" >> $JDL
-    echo "EnvironmentCommand = \"export PACKAGES=\\\"$ALIENV_PKGS\\\"; export CVMFS_NAMESPACE=\\\"$CVMFS_NAMESPACE\\\"; source custom_environment.sh; type aliroot\";" >> $JDL
+    [[ $LIMIT_FILES -ge 1 && $LIMIT_EVENTS -ge 1 ]] || { echo "LIMIT_FILES and LIMIT_EVENTS are wrongly set"; return 1; }
+    cat <<EoF >> $JDL
+NoLiveOutput = 1;
+Split_override = "production:1-\${LIMIT_FILES}";
+SplitArguments_replace = { "--nevents\\s[0-9]+", "--nevents \${LIMIT_EVENTS}" };
+OutputDir_override = "\${OUTPUT_XRD}/\${RELVAL_NAME}/MC/#alien_counter_04i#";
+EnvironmentCommand = "export PACKAGES=\"\$ALIENV_PKGS\"; export CVMFS_NAMESPACE=\"\$CVMFS_NAMESPACE\"; source custom_environment.sh; type aliroot";
+EoF
   else
     # Other JDL: not supported at the moment
     echo "This JDL does not belong to a Monte Carlo. Not supported."
-    exit 1
+    return 1
   fi
+  return 0
 }

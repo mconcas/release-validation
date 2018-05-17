@@ -264,12 +264,13 @@ node("$RUN_ARCH-relval") {
         cp -v /secrets/eos-proxy .  # fetch EOS proxy in workdir
 
         # Preprocess JDL
-        preprocess_jdl $JDL || true
+        preprocess_jdl $JDL
 
         if [[ $DRYRUN == true ]]; then
           RUN_DRYRUN="--dryrun"
           DONTMENTION=true
         fi
+
         # Start the Release Validation (notify on JIRA before and after)
         jira_relval_started  "$JIRA_ISSUE" "$OUTPUT_URL" "${TAGS// /, }" "$DONTMENTION" || true
         RV=0
