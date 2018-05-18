@@ -58,7 +58,7 @@ def preprocess_var(s, sh_mode):
 
 def gen_runjob(output_file, jdl, dry_run):
   runjob = j2env.from_string("""#!/bin/bash -e
-type zip unzip zipinfo timeout
+type zip unzip zipinfo timeout readlink
 ulimit -c unlimited  # enable core dumps
 {% for v in [ "LANG", "LANGUAGE", "LC_ALL", "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES", \
               "LC_MONETARY", "LC_NUMERIC", "LC_TIME", "LC_ALL" ] -%}
@@ -209,25 +209,26 @@ done
 PROTO=${ALIEN_JDL_OUTPUTDIR%%://*}
 [[ $PROTO != $ALIEN_JDL_OUTPUTDIR ]] || { PROTO=local; mkdir -p $ALIEN_JDL_OUTPUTDIR; }
 [[ $PROTO == local || $PROTO == root ]] || { echo "Output protocol $PROTO not supported;" exit 1; }
-workers=15
+WORKERS=${ALIEN_JDL_COPYNUMJOBS:-15}
 pushd to_transfer
+  STATEDIR=$(mkdir -p ../statedir; cd ../statedir && pwd)
   count=0
   while read FILE; do
-    ln -nfs $FILE $tempdir/$count
+    ln -nfs $FILE $STATEDIR/$count
     count=$((count+1))
   done < <(find . -type f | sed -e 's|^\./||')
-  for ((i=0; i<workers; i++)); do
+  for ((i=0; i<WORKERS; i++)); do
     ( while [[ 1 ]]; do
-        placeholder=$(find $tempdir -type l -print -quit 2> /dev/null)
-        [[ "$placeholder" == '' ]] && break
-        FILE=$(readlink $placeholder)
-        rm $placeholder 2> /dev/null || continue
+        PLACEHOLDER=$(find $STATEDIR -type l -print -quit 2> /dev/null)
+        [[ "$PLACEHOLDER" == '' ]] && break
+        FILE=$(readlink $PLACEHOLDER)
+        rm $PLACEHOLDER 2> /dev/null || continue
         for ((I=1; I<=5; I++)); do
           ERR=0
           echo "Transferring $FILE to $ALIEN_JDL_OUTPUTDIR (attempt $I/5)"
           case $PROTO in
             local) mkdir -p $(dirname "$ALIEN_JDL_OUTPUTDIR/$FILE"); cp -v $FILE $ALIEN_JDL_OUTPUTDIR/$FILE && break || ERR=$? ;;
-            root) timeout -s 9 100 xrdcp -f $FILE $ALIEN_JDL_OUTPUTDIR/$FILE && break || ERR=$? ;;
+            root) timeout -s 9 ${ALIEN_JDL_COPYTIMEOUT:-100} xrdcp -f $FILE $ALIEN_JDL_OUTPUTDIR/$FILE && break || ERR=$? ;;
           esac
         done
       done
