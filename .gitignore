@@ -1,0 +1,6 @@
+*.pyc
+/examples/*/work*
+/*egg-info
+/dist
+/build
+eos-proxy
