@@ -163,10 +163,10 @@ function preprocess_jdl() {
     [[ $LIMIT_FILES -ge 1 && $LIMIT_EVENTS -ge 1 ]] || { echo "LIMIT_FILES and LIMIT_EVENTS are wrongly set"; return 1; }
     cat <<EoF >> $JDL
 NoLiveOutput = 1;
-Split_override = "production:1-\${LIMIT_FILES}";
-SplitArguments_replace = { "--nevents\s[0-9]+", "--nevents \${LIMIT_EVENTS}" };
-OutputDir_override = "\${OUTPUT_XRD}/\${RELVAL_NAME}/MC/#alien_counter_04i#";
-EnvironmentCommand = "export PACKAGES=\"\$ALIENV_PKGS\"; export CVMFS_NAMESPACE=\"\$CVMFS_NAMESPACE\"; source custom_environment.sh; type aliroot";
+Split_override = "production:1-${LIMIT_FILES}";
+SplitArguments_replace = { "--nevents\\s[0-9]+", "--nevents \${LIMIT_EVENTS}" };
+OutputDir_override = "${OUTPUT_XRD}/${RELVAL_NAME}/MC/#alien_counter_04i#";
+EnvironmentCommand = "export PACKAGES=\"$ALIENV_PKGS\"; export CVMFS_NAMESPACE=\"$CVMFS_NAMESPACE\"; source custom_environment.sh; type aliroot";
 EoF
   else
     # Other JDL: not supported at the moment
